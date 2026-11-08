@@ -9,3 +9,4 @@ backups/
 *.lock
 .DS_Store
 .vscode/
+walt-oauth-*.json*

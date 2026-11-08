@@ -65,6 +65,7 @@ class RuntimeTests(unittest.TestCase):
                     with self.assertRaises(HTTPError) as error:
                         request('/api/commands', {'kind':'kill','request_id':'security-test'}, csrf, headers)
                     self.assertEqual(error.exception.code, 403)
+                    error.exception.close()
                 body = {'kind':'buy','payload':{'symbol':'BTC-USD','budget':'250'},'request_id':'exactly-once-buy'}
                 first = request('/api/commands',body,token)
                 duplicate = request('/api/commands',body,token)
@@ -77,6 +78,7 @@ class RuntimeTests(unittest.TestCase):
                 with self.assertRaises(HTTPError) as error:
                     request('/api/commands',collision,token)
                 self.assertEqual(error.exception.code,400)
+                error.exception.close()
                 bad = request('/api/commands', {'kind':'close','payload':{'id':10**100},'request_id':'huge-order-id'},token)
                 eventually(lambda: request('/api/commands/'+str(bad['id']))['status'] == 'failed')
                 before = request('/api/state')['meta']['worker_pid']

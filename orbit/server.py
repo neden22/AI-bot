@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from . import assistant, db
 from .engine import Engine
+from .walt import Connector, WaltError
 
 STATIC = Path(__file__).parent / 'static'
 
@@ -39,6 +40,7 @@ def snapshot(config):
 def create_server(config, wake):
     token = secrets.token_urlsafe(32)
     chat_lock = threading.Lock()
+    walt = Connector(config)
     allowed_hosts = {f'127.0.0.1:{config.port}', f'localhost:{config.port}'}
 
     class Handler(BaseHTTPRequestHandler):
@@ -56,6 +58,7 @@ def create_server(config, wake):
             self.send_header('Content-Length', str(len(body)))
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
+            self.send_header('Referrer-Policy', 'no-referrer')
             self.send_header('Content-Security-Policy', "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'")
             if filename:
                 self.send_header('Content-Disposition', f'attachment; filename="{filename}"')
@@ -75,7 +78,20 @@ def create_server(config, wake):
             if path == '/api/state':
                 state = snapshot(config)
                 state['csrf'] = token
+                state['walt'] = walt.status()
                 self.reply(state)
+            elif path == '/oauth/walt/callback':
+                try:
+                    walt.callback(urlparse(self.path).query)
+                    message, status = 'Walt авторизовано. Повернись до ORBIT і натисни «Перевірити MCP».', 200
+                except (WaltError, ValueError):
+                    message, status = 'Не вдалося завершити підключення. Повернись до ORBIT та почни знову.', 400
+                except OSError:
+                    message, status = 'Не вдалося зберегти сесію. Перевір доступ до папки даних ORBIT.', 503
+                self.reply(('<!doctype html><html lang="uk"><meta charset="utf-8"><title>ORBIT / Walt</title>'
+                    '<link rel="stylesheet" href="/style.css"><main><h1>'+message+
+                    '</h1><p><a class="button" href="/">Повернутися до ORBIT</a></p></main></html>').encode(),
+                    status, 'text/html; charset=utf-8')
             elif path.startswith('/api/commands/'):
                 command_id = path.rsplit('/', 1)[-1]
                 with db.connect(config.db) as con:
@@ -114,7 +130,13 @@ def create_server(config, wake):
                 payload = json.loads(self.rfile.read(length))
                 if not isinstance(payload, dict):
                     raise ValueError('JSON object required')
-                if self.path == '/api/commands':
+                if self.path == '/api/walt/connect':
+                    self.reply(walt.begin())
+                elif self.path == '/api/walt/check':
+                    self.reply(walt.check())
+                elif self.path == '/api/walt/disconnect':
+                    self.reply(walt.disconnect())
+                elif self.path == '/api/commands':
                     kind = payload.get('kind')
                     if kind not in ('buy','close','cancel','auto','kill','arm','report'):
                         raise ValueError('Unknown command')
@@ -150,6 +172,10 @@ def create_server(config, wake):
                         chat_lock.release()
                 else:
                     self.reply({'error': 'Not found'}, 404)
+            except WaltError as exc:
+                self.reply({'error': str(exc)}, 502)
+            except OSError:
+                self.reply({'error': 'Не вдалося зберегти сесію Walt; перевір права доступу'}, 503)
             except (ValueError, TypeError, json.JSONDecodeError) as exc:
                 self.reply({'error': str(exc)}, 400)
             except sqlite3.Error:

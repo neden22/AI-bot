@@ -15,6 +15,7 @@
       <button class="nav" data-page="orders"><span>⇄</span>Ордери та журнал</button>
       <button class="nav" data-page="reports"><span>▤</span>Центр звітів</button>
       <button class="nav" data-page="systems"><span>⌘</span>Системне ядро</button>
+      <button class="nav" data-page="walt"><span>◎</span>Walt MCP</button>
     </nav>
     <div class="side-mission"><div class="orbit-visual"><i></i><b></b><span>✦</span></div><p>YOUR MISSION.<br><strong>UNDER CONTROL.</strong></p><small>Спостерігай. Перевіряй. Керуй.</small></div>
     <div class="side-bottom"><span class="led"></span><span>LOCAL FIRST<small>v0.1 / PAPER ENGINE</small></span><span class="tiny">↗</span></div>
@@ -41,6 +42,22 @@
       </section>
       <section id="page-orders" class="page" hidden><div class="orders-layout"><section class="panel"><div class="panel-heading"><h2>Новий паперовий ордер</h2><span class="pill">LONG / SPOT</span></div><form id="order-form" class="order-form"><label>Актив<select id="symbol"><option>BTC-USD</option><option>ETH-USD</option><option>SOL-USD</option></select></label><label>Тип виконання<select id="kind"><option value="market">Ринковий</option><option value="limit">Лімітний</option></select></label><label>Бюджет у USD, включно з комісією<input id="budget" type="number" value="250" min="10" step="0.01" required></label><label id="limit-label" hidden>Лімітна ціна, USD<input id="limit-price" type="number" min="0.0001" step="any"></label><div class="risk-tags"><span>SL <b>−2%</b></span><span>TP <b>+4%</b></span></div><p class="muted">Комісія 0,1% та прослизання 0,05% на кожен бік. Лімітний вхід не перевищує лімітну ціну.</p><button class="button primary full">+ Створити PAPER ордер</button></form></section><section class="panel"><div class="panel-heading"><h2>Контроль коштів</h2><span>◈</span></div><div id="funds" class="funds"></div><div class="notice static">Паперові SL/TP перевіряються раз на ~30 с, поки сервіс працює і є свіжа ціна. Геп може збільшити збиток.</div><a class="button export" href="/api/export.csv">↓ Експорт журналу CSV</a></section></div><section class="panel journal"><div class="panel-heading"><h2>Журнал ордерів</h2><span class="pill">Останні 100 · SQLite</span></div><div class="table-wrap"><table><thead><tr><th>ОРДЕР / ЧАС</th><th>АКТИВ</th><th>СТАН</th><th>БЮДЖЕТ</th><th>ВХІД / ЛІМІТ</th><th>SL / TP</th><th>P&L</th><th>ДІЯ</th></tr></thead><tbody id="orders-table"></tbody></table></div></section></section>
       <section id="page-reports" class="page" hidden><section class="panel"><div class="panel-heading"><div><span class="eyebrow">MISSION LOGS</span><h2>Щогодинні звіти</h2></div><span id="delivery-status" class="pill">SQLite</span></div><div class="report-intro">Один автоматичний звіт на UTC-годину, поки запущено сервіс. Поточна година фіксується і при старті. Ручні звіти можна створювати окремо.</div><div id="reports" class="reports"></div></section></section>
+      <section id="page-walt" class="page" hidden>
+        <section class="panel walt-panel">
+          <div class="panel-heading"><div><span class="eyebrow">ACCOUNT CONNECTION</span><h2>Walt / MCP</h2></div><span class="pill">READ ONLY</span></div>
+          <p class="muted">Авторизуй ORBIT через Walt, щоб встановити MCP-з’єднання та отримати список інструментів. Дозвіл: лише perps.readonly. Торгові кнопки ORBIT продовжують працювати з паперовим рахунком.</p>
+          <div id="walt-info" class="funds"></div>
+          <div class="walt-actions">
+            <button id="walt-connect" class="button primary">Підключити Walt</button>
+            <a id="walt-auth-link" class="button primary" target="_blank" rel="noopener noreferrer" hidden>Відкрити авторизацію Walt ↗</a>
+            <button id="walt-check" class="button">Перевірити MCP</button>
+            <button id="walt-disconnect" class="button">Від’єднати локально</button>
+          </div>
+          <p id="walt-progress" class="muted" aria-live="polite">Натисни «Підключити Walt», потім відкрий авторизацію та підтвердь дозвіл у Walt. Після повернення натисни «Перевірити MCP».</p>
+          <p class="muted">Це підключення ще не завантажує баланс чи позиції та не виконує ордери. Список нижче — лише виявлені інструменти; виклик інструментів вимкнений.</p>
+          <div id="walt-tools" class="funds"></div>
+        </section>
+      </section>
       <section id="page-systems" class="page" hidden><div class="systems-grid"><section class="panel"><div class="panel-heading"><h2>Системна телеметрія</h2><span class="pill">OS RUNTIME</span></div><div id="system-info" class="funds"></div><div class="system-flow"><span>HTTP / UI</span><b>↕</b><span>SQLite queue + OS Pipe</span><b>↕</b><span>Trading process</span></div><p class="muted">Процес ядра ізольований від HTTP і мовної моделі. Supervisor перезапускає завершені дочірні процеси; ліміт — 3 перезапуски за хвилину.</p></section><section class="panel"><div class="panel-heading"><h2>Протокол безпеки</h2><span class="eyebrow">RISK ENGINE</span></div><div class="safety-list"><p><span>01</span> Ліміт втрати за UTC-добу: <b>3%</b></p><p><span>02</span> Максимум <b>3 позиції / ордери</b></p><p><span>03</span> Нові входи лише зі свіжою ціною <b>≤90 с</b></p><p><span>04</span> KILL зберігається <b>після перезапуску</b></p></div><button id="kill-button" class="button danger full">⊗ Аварійна зупинка входів</button><button id="arm-button" class="button full">Зняти KILL · залишити паузу</button><p class="fine-print">KILL скасовує очікувані ордери. Відкриті позиції залишаються під SL/TP; їх можна закрити в журналі.</p></section><section class="panel events-panel"><div class="panel-heading"><h2>Журнал системних подій</h2><span class="eyebrow">AUDIT TRAIL</span></div><div id="events"></div></section></div></section>
       <footer><span><i class="dot orange"></i> ORBIT / MISSION CONTROL</span><span>Паперова торгівля · Жодних реальних транзакцій</span><span id="updated">SYNCING…</span></footer>
     </main>

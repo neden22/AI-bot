@@ -70,6 +70,13 @@ function render(s) {
   $('system-info').innerHTML = [['Торговий процес',s.meta.worker_pid || 'Запуск…'],['Heartbeat',s.meta.heartbeat ? date(s.meta.heartbeat) : '—'],['База даних','SQLite / WAL / FULL'],['Режим виконання','PAPER · Decimal'],['Планувальник','monotonic / UTC reports'],['Добова база капіталу',money(s.meta.daily_equity)],['Добовий захист',s.meta.daily_tripped ? 'BLOCKED' : 'ARMED']].map(([a,b]) => `<div class="fund-row"><span>${a}</span><b>${esc(b)}</b></div>`).join('');
   $('kill-button').disabled = s.meta.killed; $('arm-button').hidden = !s.meta.killed;
   $('updated').textContent = 'SYNC ' + new Date().toLocaleTimeString('uk-UA');
+  const w = s.walt || {};
+  const wStatus = !w.authorized ? 'Не авторизовано' : w.error ? 'Потрібна перевірка' : w.verified ? 'MCP перевірено' : 'Авторизовано; перевір MCP';
+  $('walt-info').innerHTML = [['З’єднання',wStatus],['Доступ','perps.readonly'],['Остання перевірка',w.last_check ? date(w.last_check) : 'Ще не виконувалась'],['Виявлено інструментів',(w.tools || []).length]].map(([a,b]) => `<div class="fund-row"><span>${a}</span><b>${esc(b)}</b></div>`).join('');
+  $('walt-check').hidden = !w.authorized; $('walt-disconnect').hidden = !w.authorized && !w.pending;
+  $('walt-connect').textContent = w.authorized ? 'Авторизувати повторно' : 'Підключити Walt';
+  if (w.authorized && !w.pending) $('walt-auth-link').hidden = true;
+  $('walt-tools').innerHTML = (w.tools || []).map(t => `<div class="walt-tool"><b>${esc(t.name)}</b><p>${esc(t.description)}</p></div>`).join('');
   renderChart(s.equity);
 }
 async function refresh() {
@@ -91,6 +98,29 @@ $('toggle-auto').addEventListener('click', event => { if (state) command('auto',
 $('report-now').addEventListener('click', event => command('report',{},event.currentTarget));
 $('kill-button').addEventListener('click', event => command('kill',{},event.currentTarget));
 $('arm-button').addEventListener('click', event => command('arm',{},event.currentTarget));
+for (const action of ['connect','check','disconnect']) {
+  $('walt-'+action).addEventListener('click', async event => {
+    if (!token) { toast('Дочекайся підключення до ORBIT'); return; }
+    const button = event.currentTarget; button.disabled = true;
+    $('walt-progress').textContent = 'Обмін даними з Walt…';
+    try {
+      const result = await api('/api/walt/'+action,{});
+      if (action === 'connect') {
+        const url = new URL(result.authorization_url);
+        if (url.origin !== 'https://walletbot.me' || url.pathname !== '/bot-relay/public-api/oauth/v1/authorize') throw Error('Неочікувана адреса авторизації');
+        $('walt-auth-link').href = url.href; $('walt-auth-link').hidden = false;
+        $('walt-progress').textContent = 'Натисни «Відкрити авторизацію Walt», підтвердь доступ і повернись сюди. Потім натисни «Перевірити MCP». Посилання діє 10 хвилин.';
+      } else if (action === 'check') {
+        $('walt-progress').textContent = 'MCP-з’єднання перевірено. Виявлено інструментів: '+result.tools.length+'. Баланс і позиції в цій версії ще не завантажуються.';
+      } else {
+        $('walt-auth-link').hidden = true; $('walt-auth-link').removeAttribute('href');
+        $('walt-progress').textContent = 'Локальні токени видалено. Це не скасовує дозвіл на стороні Walt.';
+      }
+      await refresh();
+    } catch (e) { $('walt-progress').textContent = e.message; toast(e.message); }
+    finally { button.disabled = false; }
+  });
+}
 function bubble(text, user=false, label='') { const item = document.createElement('div'); item.className = 'chat-bubble' + (user ? ' user' : ''); if (label) { const small = document.createElement('small'); small.textContent = label; item.append(small); } item.append(document.createTextNode(text)); $('chat-messages').append(item); $('chat-messages').scrollTop = $('chat-messages').scrollHeight; }
 $('chat-form').addEventListener('submit', async event => {
   event.preventDefault(); const question = $('question').value.trim(); if (!question) return;
