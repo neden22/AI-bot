@@ -1,0 +1,25 @@
+# User service: copy to ~/.config/systemd/user/orbit.service.
+# Assumes checkout at ~/AI-bot and Python 3.11+ venv at ~/AI-bot/.venv.
+[Unit]
+Description=ORBIT paper-trading agent
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+WorkingDirectory=%h/AI-bot
+ExecStart=%h/AI-bot/.venv/bin/python -m orbit
+EnvironmentFile=-%h/AI-bot/.env
+StateDirectory=orbit
+Environment=ORBIT_DB=%S/orbit/orbit.sqlite3
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=35
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

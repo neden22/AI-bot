@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b12"><title>ORBIT — Trading Mission Control</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='20' stroke='%23fc824b' fill='%23090b12' stroke-width='5'/%3E%3Cellipse cx='32' cy='32' rx='30' ry='10' stroke='%23fc824b' fill='none' stroke-width='3' transform='rotate(-35 32 32)'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="ORBIT головна"><span class="brand-mark">◉</span><span>ORBIT<small>TRADING INTELLIGENCE</small></span></a>
+    <div class="nav-label">MISSION CONTROL</div>
+    <nav aria-label="Основна навігація">
+      <button class="nav active" data-page="overview"><span>◈</span>Огляд<span class="nav-dot"></span></button>
+      <button class="nav" data-page="orders"><span>⇄</span>Ордери та журнал</button>
+      <button class="nav" data-page="reports"><span>▤</span>Центр звітів</button>
+      <button class="nav" data-page="systems"><span>⌘</span>Системне ядро</button>
+    </nav>
+    <div class="side-mission"><div class="orbit-visual"><i></i><b></b><span>✦</span></div><p>YOUR MISSION.<br><strong>UNDER CONTROL.</strong></p><small>Спостерігай. Перевіряй. Керуй.</small></div>
+    <div class="side-bottom"><span class="led"></span><span>LOCAL FIRST<small>v0.1 / PAPER ENGINE</small></span><span class="tiny">↗</span></div>
+  </aside>
+  <div class="workspace">
+    <header><div class="breadcrumb">WORKSPACE <span>/</span> <b id="page-label">Огляд місії</b></div><div class="header-right"><span id="clock">--:--:--</span><span class="mode-badge">PAPER ACCOUNT</span><span class="avatar">D</span></div></header>
+    <main>
+      <div class="page-heading"><div><div class="eyebrow"><span></span> AUTONOMOUS TRADING STATION</div><h1>Твоя торгова орбіта<span>.</span></h1><p>Ринкові дані, контроль ризику та рішення в одному просторі.</p></div><div class="heading-controls"><span id="feed-badge" class="badge">ДЖЕРЕЛО: ОЧІКУВАННЯ</span><button class="button" id="report-now">↗ Створити звіт</button></div></div>
+      <div id="connection-warning" class="notice" hidden>Зв’язок із сервером втрачено. Дані на екрані можуть бути застарілими.</div>
+      <div id="feed-warning" class="notice" hidden></div>
+      <section id="page-overview" class="page">
+        <div class="metrics">
+          <article class="metric"><div>Капітал рахунку <span>↗</span></div><strong id="equity">$—</strong><small><i class="dot orange"></i> Віртуальні USD · PAPER</small></article>
+          <article class="metric"><div>Результат торгів <span>∿</span></div><strong id="pnl">$—</strong><small id="pnl-detail">Реалізований та плаваючий P&L</small></article>
+          <article class="metric"><div>Активні ордери <span>⇄</span></div><strong id="active-count">—</strong><small id="active-detail">Відкриті та очікувані</small></article>
+          <article class="metric"><div>Стан агента <span>◉</span></div><strong id="agent-status" class="status-text">Очікування</strong><small id="heartbeat">З’єднання з торговим ядром…</small></article>
+        </div>
+        <div class="dashboard-grid">
+          <section class="panel chart-panel"><div class="panel-heading"><div><span class="eyebrow">PORTFOLIO TELEMETRY</span><h2>Траєкторія капіталу</h2></div><span class="pill">Останні 200 точок</span></div><div class="chart-total"><b id="chart-value">$—</b><span id="chart-change">PAPER EQUITY</span></div><div id="chart" class="chart" role="img" aria-label="Історія капіталу рахунку"></div><div class="chart-foot"><span id="chart-start">Очікування телеметрії</span><span>Час пристрою · USD</span><span id="chart-end">—</span></div></section>
+          <section class="panel analyst-panel"><div class="panel-heading"><div class="analyst-title"><span class="ai-icon">✦</span><div><h2>ORBIT Intelligence</h2><small id="analyst-provider">Шаблонний огляд</small></div></div><span class="led"></span></div><div class="analyst-note">READ-ONLY ANALYST <span>↗</span></div><div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-bubble">Вітаю на борту. Запитай про позиції, ризик або стан рахунку. Я пояснюю дані; ордери виконує торгове ядро.</div></div><form id="chat-form" class="chat-form"><label class="sr-only" for="question">Запитання аналітику</label><input id="question" maxlength="2000" placeholder="Що відбувається з ордерами?" required><button aria-label="Надіслати запитання">↑</button></form></section>
+          <section class="panel market-panel"><div class="panel-heading"><h2>Ринковий радар</h2><span class="eyebrow">USD / SPOT</span></div><div id="markets"></div><div class="panel-footer">Оновлення кожні ~30 с · джерело та вік показані для кожної ціни</div></section>
+          <section class="panel autopilot-panel"><div class="panel-heading"><h2>Автопілот</h2><span class="pill" id="autopilot-state">PAUSED</span></div><div class="strategy-visual"><span>5</span><div><b>SMA CROSSOVER</b><small>5 / 20 послідовних зразків</small></div><span>20</span></div><p>Входить при перетині середніх угору. Виходить при зворотному перетині, SL або TP.</p><div class="risk-tags"><span>SL <b>−2%</b></span><span>TP <b>+4%</b></span><span>MAX <b>10% / ордер</b></span></div><button id="toggle-auto" class="button primary full">▷ Запустити автопілот</button><small class="fine-print">Навчальна стратегія. Модель ШІ не керує виконанням.</small></section>
+        </div>
+      </section>
+      <section id="page-orders" class="page" hidden><div class="orders-layout"><section class="panel"><div class="panel-heading"><h2>Новий паперовий ордер</h2><span class="pill">LONG / SPOT</span></div><form id="order-form" class="order-form"><label>Актив<select id="symbol"><option>BTC-USD</option><option>ETH-USD</option><option>SOL-USD</option></select></label><label>Тип виконання<select id="kind"><option value="market">Ринковий</option><option value="limit">Лімітний</option></select></label><label>Бюджет у USD, включно з комісією<input id="budget" type="number" value="250" min="10" step="0.01" required></label><label id="limit-label" hidden>Лімітна ціна, USD<input id="limit-price" type="number" min="0.0001" step="any"></label><div class="risk-tags"><span>SL <b>−2%</b></span><span>TP <b>+4%</b></span></div><p class="muted">Комісія 0,1% та прослизання 0,05% на кожен бік. Лімітний вхід не перевищує лімітну ціну.</p><button class="button primary full">+ Створити PAPER ордер</button></form></section><section class="panel"><div class="panel-heading"><h2>Контроль коштів</h2><span>◈</span></div><div id="funds" class="funds"></div><div class="notice static">Паперові SL/TP перевіряються раз на ~30 с, поки сервіс працює і є свіжа ціна. Геп може збільшити збиток.</div><a class="button export" href="/api/export.csv">↓ Експорт журналу CSV</a></section></div><section class="panel journal"><div class="panel-heading"><h2>Журнал ордерів</h2><span class="pill">Останні 100 · SQLite</span></div><div class="table-wrap"><table><thead><tr><th>ОРДЕР / ЧАС</th><th>АКТИВ</th><th>СТАН</th><th>БЮДЖЕТ</th><th>ВХІД / ЛІМІТ</th><th>SL / TP</th><th>P&L</th><th>ДІЯ</th></tr></thead><tbody id="orders-table"></tbody></table></div></section></section>
+      <section id="page-reports" class="page" hidden><section class="panel"><div class="panel-heading"><div><span class="eyebrow">MISSION LOGS</span><h2>Щогодинні звіти</h2></div><span id="delivery-status" class="pill">SQLite</span></div><div class="report-intro">Один автоматичний звіт на UTC-годину, поки запущено сервіс. Поточна година фіксується і при старті. Ручні звіти можна створювати окремо.</div><div id="reports" class="reports"></div></section></section>
+      <section id="page-systems" class="page" hidden><div class="systems-grid"><section class="panel"><div class="panel-heading"><h2>Системна телеметрія</h2><span class="pill">OS RUNTIME</span></div><div id="system-info" class="funds"></div><div class="system-flow"><span>HTTP / UI</span><b>↕</b><span>SQLite queue + OS Pipe</span><b>↕</b><span>Trading process</span></div><p class="muted">Процес ядра ізольований від HTTP і мовної моделі. Supervisor перезапускає завершені дочірні процеси; ліміт — 3 перезапуски за хвилину.</p></section><section class="panel"><div class="panel-heading"><h2>Протокол безпеки</h2><span class="eyebrow">RISK ENGINE</span></div><div class="safety-list"><p><span>01</span> Ліміт втрати за UTC-добу: <b>3%</b></p><p><span>02</span> Максимум <b>3 позиції / ордери</b></p><p><span>03</span> Нові входи лише зі свіжою ціною <b>≤90 с</b></p><p><span>04</span> KILL зберігається <b>після перезапуску</b></p></div><button id="kill-button" class="button danger full">⊗ Аварійна зупинка входів</button><button id="arm-button" class="button full">Зняти KILL · залишити паузу</button><p class="fine-print">KILL скасовує очікувані ордери. Відкриті позиції залишаються під SL/TP; їх можна закрити в журналі.</p></section><section class="panel events-panel"><div class="panel-heading"><h2>Журнал системних подій</h2><span class="eyebrow">AUDIT TRAIL</span></div><div id="events"></div></section></div></section>
+      <footer><span><i class="dot orange"></i> ORBIT / MISSION CONTROL</span><span>Паперова торгівля · Жодних реальних транзакцій</span><span id="updated">SYNCING…</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body></html>
